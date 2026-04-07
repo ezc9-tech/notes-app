@@ -1,15 +1,61 @@
-export function getAllNotes(req, res){
-    res.status(200).send("Get all notes");
+import Note from "../models/Note.js"
+
+export async function getAllNotes(req, res){
+    try {
+        const notes = await Note.find().sort({ createdAt: -1 })
+        res.status(200).json(notes)
+    } catch (error) {
+        res.status(500).json({ message: error.message})
+    }
 }
 
-export function createNote(req, res){
-    res.status(201).send("Create a new note")
+export async function getNoteById(req, res) {
+    try {
+        const id = req.params.id
+        const note = await Note.findById(id)
+        if (!note) {
+            return res.status(404).json({ message: "Note not found" })
+        }
+        res.status(200).json(note)
+    } catch (error) {
+        res.status(500).json({ message: error.message })
+    }
 }
 
-export function updateNote(req, res) {
-    res.status(200).send("Update a note")
+export async function createNote(req, res){
+    try {
+        const { title, content } = req.body
+        const newNote = new Note({ title: title, content: content})
+        const savedNote = await newNote.save()
+        res.status(201).json(savedNote)
+    } catch (error) {
+        res.status(500).json({ message: error.message})
+    }
 }
 
-export function deleteNote(req, res) {
-    res.status(200).send("Delete a note")
+export async function updateNote(req, res) {
+    try {
+        const { title, content } = req.body
+        const id = req.params.id
+        const updatedNote = await Note.findByIdAndUpdate(id, { title, content}, { new: true})
+        if (!updatedNote) {
+            return res.status(404).json({ message: "Note not found"})
+        }
+        res.status(200).json(updatedNote)
+    } catch (error) {
+        res.status(500).json({ message: error.message})
+    }
+}
+
+export async function deleteNote(req, res) {
+    try {
+        const id = req.params.id
+        const deletedNote = await Note.findByIdAndDelete(id)
+        if (!deletedNote) {
+            return res.status(404).json({ message: "Note not found"})
+        }
+        res.status(200).json({ message: "Note deleted successfully" })
+    } catch (error) {
+        res.status(500).json({ message: error.message})
+    }
 }
